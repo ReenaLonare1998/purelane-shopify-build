@@ -35,13 +35,22 @@
       {%- for item in items -%}
         <span class="pl-combo__item">
           {%- assign item_product = item.product.value -%}
+          {%- comment -%}
+            No placeholder_label here: the caption already renders as its
+            own <span> right below, visible whether or not this slot has
+            a product image. Passing the same text as placeholder_label
+            too used to double it up inside the placeholder tile itself —
+            found live, with real seeded data, where two tray slots
+            legitimately hit the placeholder path (one with no product
+            linked, one linked to the deliberately-no-image product) and
+            both showed their caption twice.
+          {%- endcomment -%}
           {%- render 'purelane-media',
             image: item_product.featured_image,
             alt: item_product.title | default: item.caption.value,
             width: 132,
             sizes: '90px',
-            class: 'pl-combo__item-image',
-            placeholder_label: item.caption.value
+            class: 'pl-combo__item-image'
           -%}
           <span>{{ item.caption.value }}</span>
         </span>
