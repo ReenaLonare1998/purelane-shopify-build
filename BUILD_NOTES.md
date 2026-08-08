@@ -257,3 +257,78 @@ blocks.
   proper tool rather than the visual judgement used while porting — WCAG
   AA is a hard requirement and deserves a real contrast checker pass,
   not just "this looked fine in the source file."
+
+## Self-review checklist
+
+Reported honestly per the assignment's instruction — boxes that can't be
+checked are left unchecked with the specific reason, not marked done.
+
+- [x] All 5 required sections exist as independent, schema-driven
+      Shopify sections — `sections/hero.liquid`, `shop-grid.liquid`,
+      `combos.liquid`, `bundles.liquid`, `reviews-rail.liquid`, each with
+      its own `{% schema %}`, addable/removable/reorderable independently.
+- [ ] **Visual match confirmed against source file at 375/768/1024/
+      1440/1920px** — not done. Every breakpoint, `clamp()` value, and
+      layout rule was ported directly from the source file's own CSS,
+      but "ported the same values" and "visually verified side-by-side
+      in a browser" are different claims, and no dev store exists yet to
+      preview this build in. Biggest open item — see "manual handoff
+      step" above.
+- [x] Every piece of design-visible text/media is a theme editor
+      setting — headings, ledes, CTA text/links, kicker text, badge
+      labels, images (via product/metaobject references), section
+      toggles (empty-state handling per section). The few things left
+      fixed are decorative-only: which 3 icon shapes exist to choose
+      from for promise badges, the CTA arrow glyph, the leaf divider
+      icon — icon *choice* is editable per badge block, the icon
+      *artwork* itself is not, same as Dawn's own icon pickers.
+- [x] All product/price/availability data pulled live from Shopify
+      objects — shop-grid card reads `product.price`/`compare_at_price`/
+      `available`/`featured_image` directly. Combo/tier/hero-slide
+      pricing is explicit (documented, deliberate — see "Assumptions"
+      above) since those are curated bundle offers, not a single
+      product's own price.
+- [x] All custom data needs solved via metafields/metaobjects,
+      documented — METAFIELDS.md.
+- [x] Shared card markup extracted into reusable snippets —
+      `snippets/purelane-price.liquid`, `purelane-media.liquid`,
+      `purelane-card-{product,combo,bundle-tier,review}.liquid`.
+- [ ] **Sections tested for add/remove/reorder/reconfigure without
+      breaking** — not done live, for the same reason as the visual-match
+      item: no dev store to open the theme editor in yet. Written to
+      survive it (blocks throughout, no load-once-only JS, self-
+      contained per-section backgrounds instead of the prototype's
+      cross-section-coupled one) but not yet verified to.
+- [x] Lazy loading, responsive images, no layout shift implemented —
+      `loading="lazy"`/`fetchpriority="high"` where appropriate,
+      `srcset`/`sizes` via `image_url`, explicit `width`/`height`
+      attributes throughout `snippets/purelane-media.liquid`.
+- [ ] **Keyboard nav, focus states, contrast, and reduced-motion all
+      verified** — partially. Reduced-motion is implemented and
+      functional (animations fully disabled, not just hidden, under
+      `prefers-reduced-motion: reduce`). Focus states rely on Dawn's own
+      global `:focus-visible` styling (reused deliberately rather than
+      reinvented). Colour contrast was reasoned about, not measured with
+      a real contrast-checking tool — flagged above as a "with more
+      time" item. Keyboard nav (tab order through cards/dots/marquee)
+      was designed for but not live-tested in a browser.
+- [x] Commit history is incremental and readable — 12 commits telling
+      the build's story (Dawn base → scaffold → each section in
+      dependency order → template wiring → seeding plan → these notes),
+      not one giant commit.
+- [ ] **8+ products seeded including sold-out, no-image, and long-title
+      cases** — not done; no dev store exists to seed products into yet.
+      PRODUCT_SEEDING.md is the exact plan (11 products, edge cases
+      explicitly assigned) for whoever sets up the store to follow.
+- [x] BUILD_NOTES.md and AI_WORKFLOW_NOTES.md written and committed.
+- [ ] **Dev store URL and password ready to hand off** — not available;
+      no store exists yet (see "manual handoff step" above).
+
+**Summary: 8 of 13 checked.** The 5 unchecked items are all downstream of
+the same one blocker — no Shopify Partner account/dev store exists yet,
+because creating one needs an interactive signup flow this environment
+can't drive. Every item that *can* be done without a live store (the
+code itself, its data model, its documentation, its commit history) is
+done. Per the assignment's own framing: "We don't expect all five
+finished... send what you have and be straight with us about the gaps"
+— this is that, straightforwardly.
