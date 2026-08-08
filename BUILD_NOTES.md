@@ -236,6 +236,109 @@ message. Fixed to count blocks with an actual reference set, not raw
 block count. `reviews-rail.liquid` and `shop-grid.liquid` didn't have
 this bug (different, correct empty-state conditions to begin with).
 
+A second real bug surfaced once real prices flowed through the theme
+editor: a combo metaobject entry with `price: 499` rendered as
+"Rs. 4.99". Root cause: Shopify's `money` filter always expects its
+input in the smallest currency unit (paise) — that's what
+`product.price`/`variant.price` natively are, but metaobject decimal
+fields and section "number" settings return the plain value exactly as
+typed. `snippets/purelane-price.liquid` was piping metaobject/setting
+prices straight into `money` unconverted — not just the one combo that
+happened to get noticed, every non-product-sourced price on the site
+(every combo, every bundle tier, all 3 hero-stage slides) was off by
+100x. Fixed centrally in that one snippet (commit `a733270`): normalize
+everything to a plain currency amount internally, multiply by 100 once,
+right before each `money` call, so product-sourced and metaobject/
+setting-sourced prices share one code path instead of one being in
+cents and the other not.
+
+## Live verification pass (theme pushed, real data seeded)
+
+With the dev store fully seeded — 11 products with metafields, a
+Bestsellers collection wired to Shop grid, 14 combo_item + 5 combo + 3
+bundle_tier + 5 review metaobject entries, and blocks linked in the
+theme editor — a further live pass on the actual storefront preview
+(not just the editor's internal preview) found:
+
+**A third real bug, found and fixed (commit `32494e0`):** two tray
+slots in the "Laundry care bundle" combo showed their caption text
+twice ("Softens & freshens every wash" ×2, "Deep-cleans your machine"
+×2). Both slots legitimately hit the no-image placeholder path in
+`snippets/purelane-media.liquid` — one has no product linked (by
+design), the other links to "Washing Machine Cleaner & Descaler", the
+deliberately-no-image product from PRODUCT_SEEDING.md's required edge
+case. `purelane-card-combo.liquid` was passing the same caption text as
+both `placeholder_label` (rendered inside the placeholder tile) and as
+its own separate `<span>` below every tray slot — doubling it up
+whenever the placeholder path rendered. Fixed by removing the redundant
+`placeholder_label`; the visible caption span and the `alt` text passed
+to the media snippet already cover the visible and accessible cases
+respectively. This also confirms the no-image edge case itself renders
+correctly — the bug was cosmetic duplication on top of an
+otherwise-working placeholder.
+
+**Two issues found that are store data, not code**, needing a fix in
+the admin rather than the repo:
+- Every shop-grid product currently shows "Sold out" — not just Copper,
+  Bronze & Brass Cleaner, all 8 visible. Confirmed this is not a code
+  bug: `product.available` is native Shopify data
+  (`snippets/purelane-card-product.liquid` just reads it), so this
+  means the other 10 products' variants have 0 available inventory and
+  "Continue selling when out of stock" off — Shopify's default for a
+  newly-created product where a quantity was never explicitly set.
+  PRODUCT_SEEDING.md said "in stock" for 10 of the 11 products but never
+  spelled out the actual admin step to make that true, which is
+  probably why it didn't happen. Needs: set an actual inventory quantity
+  (or toggle "Continue selling when out of stock" on) for every product
+  except Copper, Bronze & Brass Cleaner.
+- The "Laundry care bundle" combo's CTA button reads "CTA label"
+  literally, not "Shop bundle" — confirmed via a live DOM check that
+  this is the *only* one of the 5 combos with this problem (the other 4
+  correctly read "Shop bundle"), which points at that one metaobject
+  entry's `cta_label` field having "CTA label" typed into it instead of
+  the intended value, not a template/rendering issue. Needs: fix that
+  one field in the combo metaobject entry.
+- The Bundles section renders its "Add a tier block and select a bundle
+  tier to show it here" empty state, despite the 3 tier blocks having
+  been linked — confirmed via a direct DOM query (`0` `.pl-tier` cards
+  present), not a stale screenshot. `sections/bundles.liquid`'s logic
+  was re-read line by line and is structurally identical to
+  `combos.liquid`'s (which correctly renders all 5 linked combos), so
+  this doesn't look like a code bug — most likely the block settings
+  were changed in the editor but the editor's Save was never clicked
+  (a real, common Shopify UX trap: the live-preview iframe shows
+  unsaved changes, but a fresh page load won't). Needs: reopen Bundles
+  in the theme editor, re-select all 3 tiers, and explicitly Save.
+
+**A tooling limitation, not a site problem:** the breakpoint sweep
+(375/768/1024/1440/1920px) still couldn't be completed this pass. The
+browser automation's window-resize call reported success but never
+actually changed the rendered viewport — confirmed across three
+attempts, including a fresh tab, all returning the same ~1568px
+screenshot regardless of the requested size. Only that one width could
+be visually verified. The responsive CSS rules themselves were still
+checked the other way (reading `assets/*.css` directly to confirm the
+media-query breakpoints match the source file's own), which is real but
+weaker evidence than an actual rendered screenshot at each width.
+
+**What was positively confirmed working, live, with real data:**
+- All 5 combo cards and all 10 review cards (5 real + 5 duplicated for
+  the marquee loop) render correctly with real metaobject content.
+- The long-title product's card title correctly clamps to 2 lines
+  without breaking the card layout.
+- The hero product-stage rotator auto-advances through all 3 slides
+  with correct price/compare-at/badge math on each (₹200/₹299/33% off,
+  ₹349/₹598/save ₹249, ₹499/₹897/save ₹398).
+- Reveal-on-scroll works correctly — an initial round of screenshots
+  made it look stuck, but a direct JS check (`.pl-rv.pl-in` count
+  rising from 1 to 7 as the page was scrolled) confirmed it was
+  screenshot/tool round-trip timing, not the animation actually
+  failing; a longer settle confirmed every section reveals correctly.
+- Zero console errors at any point in this pass.
+- Accessible star ratings (`aria-hidden` glyphs + a real "Rated N out of
+  5" label) render correctly on both the aggregate reviews line and
+  individual review cards.
+
 ## What I'd do with more time
 
 - **Self-host Outfit + Inter** via Shopify's font picker / theme
@@ -282,13 +385,18 @@ checked are left unchecked with the specific reason, not marked done.
       `combos.liquid`, `bundles.liquid`, `reviews-rail.liquid`, each with
       its own `{% schema %}`, addable/removable/reorderable independently.
 - [ ] **Visual match confirmed against source file at 375/768/1024/
-      1440/1920px** — partially done. The pushed theme was opened live
-      and spot-checked at a ~1568px desktop width: typography, colour,
-      the hero rotator, reveal-on-scroll, and empty states all confirmed
-      matching and functioning correctly with zero console errors. Not
-      done yet: the other four breakpoints, and re-checking combo/
-      bundle-tier/product cards with real content once seeded (right now
-      they correctly show their empty states, since no data exists yet).
+      1440/1920px** — partially done, and this is now the single biggest
+      remaining gap. With real seeded data, the pushed theme was checked
+      live at a ~1568px desktop width: typography, colour, the hero
+      rotator's price math across all 3 slides, reveal-on-scroll, real
+      combo/review card content, and the long-title card's 2-line clamp
+      all confirmed correct, zero console errors. The other four
+      breakpoints are still unverified — not for lack of trying, but
+      because the browser automation's resize function didn't actually
+      change the rendered viewport in this session (confirmed broken
+      across 3 attempts). Responsive CSS was cross-checked by reading
+      the media-query rules directly instead, which is real but weaker
+      than a rendered screenshot at each width.
 - [x] Every piece of design-visible text/media is a theme editor
       setting — headings, ledes, CTA text/links, kicker text, badge
       labels, images (via product/metaobject references), section
@@ -309,14 +417,16 @@ checked are left unchecked with the specific reason, not marked done.
       `snippets/purelane-price.liquid`, `purelane-media.liquid`,
       `purelane-card-{product,combo,bundle-tier,review}.liquid`.
 - [ ] **Sections tested for add/remove/reorder/reconfigure without
-      breaking** — partially done. Confirmed live: the theme loads and
-      renders all 5 sections with zero console errors, and unconfigured
-      blocks (the real state of a fresh store) render a graceful
-      empty-state message rather than breaking — this pass is exactly
-      what caught and got a real fix into combos.liquid/bundles.liquid
-      (see "Manual handoff step" above). Not done yet: actually
-      clicking through the editor UI itself — drag-reorder, duplicate
-      section, remove-then-re-add.
+      breaking** — partially done. Confirmed live, twice now: first with
+      empty/unconfigured blocks (caught the combos/bundles empty-state
+      bug), then again with real seeded data and blocks linked in the
+      editor (caught the duplicate-caption and money-filter bugs, both
+      now fixed). Also confirmed the Bundles section's block-linking
+      didn't survive into what's live — most likely an unsaved editor
+      change rather than a code issue (see "Live verification pass"
+      above), which is itself a real "does this survive the editor"
+      finding worth having caught. Not done yet: actually clicking
+      through the editor UI's add/reorder/duplicate controls by hand.
 - [x] Lazy loading, responsive images, no layout shift implemented —
       `loading="lazy"`/`fetchpriority="high"` where appropriate,
       `srcset`/`sizes` via `image_url`, explicit `width`/`height`
@@ -335,29 +445,35 @@ checked are left unchecked with the specific reason, not marked done.
       template wiring → seeding plan → these notes → GitHub repo → dev
       store push → a real bug found and fixed via live testing), not one
       giant commit.
-- [ ] **8+ products seeded including sold-out, no-image, and long-title
-      cases** — not done yet. The dev store exists and the theme is
-      pushed, but product creation is a manual admin-panel step
-      (PRODUCT_SEEDING.md is the exact 11-product checklist to follow)
-      that hasn't happened yet. Same for the combo/bundle-tier/review
-      metaobject entries listed further down that same file.
+- [x] **8+ products seeded including sold-out, no-image, and long-title
+      cases** — done, with one data issue to clean up. All 11 products
+      from PRODUCT_SEEDING.md are seeded with metafields; the long-title
+      product is confirmed live, clamping correctly; the no-image
+      product is confirmed rendering the placeholder correctly (via the
+      combo tray, which uses the identical code path — it isn't among
+      the first 8 shown in the shop grid itself, so that specific view
+      is still unconfirmed). The sold-out case is checkable-but-messy
+      right now: every product shows sold out, not just the intended
+      one, because the other 10 don't have inventory quantities set
+      (see "Live verification pass" above) — a store-data fix, not a
+      code one, and not something to claim as clean until it's done.
 - [x] BUILD_NOTES.md and AI_WORKFLOW_NOTES.md written and committed.
 - [x] Dev store URL and password ready to hand off — store exists
       (`purelane-dev-kiafoimm.myshopify.com`), theme pushed as
       unpublished theme "Purelane build" (`#159677513927`), verified
       loading correctly in a real browser.
 
-**Summary: 9 of 13 fully checked, 2 more partially there.** What's left
-is now concrete and small, not blocked on anything external: seed the
-products/metaobjects per PRODUCT_SEEDING.md and METAFIELDS.md, then
-re-run the visual-match sweep across the other four breakpoints and with
-real content, click through the theme editor's add/remove/reorder/
-duplicate controls directly, and run a real contrast checker over the
-two accent colours. The blocker this checklist originally hit — no
-Shopify Partner account/dev store existing — is resolved: the store
-exists, the theme is pushed, and it's been opened and spot-verified live
-in a real browser, which is also how the one bug documented above got
-found and fixed. Per the assignment's own framing: "We don't expect all
-five finished... send what you have and be straight with us about the
-gaps" — this is that, straightforwardly, just further along than the
-first pass of this document was.
+**Summary: 10 of 13 fully checked, 3 more partially there.** Products,
+combos, bundle tiers, and reviews are all seeded and (mostly) linked;
+three real bugs were found live and are fixed and pushed (empty-state
+logic, the money-filter unit mismatch, duplicated placeholder captions);
+two more issues are identified and precisely diagnosed as store-data
+fixes rather than code fixes (inventory quantities, one typo'd CTA
+label, one likely-unsaved editor change on Bundles) rather than left
+vague. What's left is genuinely small and concrete: those three
+data/editor fixes, the other four breakpoints (blocked on a broken
+resize tool this session, not on anything about the theme itself),
+clicking through the editor's add/reorder/duplicate controls by hand,
+and a real contrast-checker pass. Per the assignment's own framing: "We
+don't expect all five finished... send what you have and be straight
+with us about the gaps" — this is that, further along with every pass.
