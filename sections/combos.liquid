@@ -13,6 +13,12 @@
 
 {%- liquid
   assign combo_blocks = section.blocks | where: 'type', 'combo'
+  assign configured_combo_count = 0
+  for block in combo_blocks
+    if block.settings.combo != blank
+      assign configured_combo_count = configured_combo_count | plus: 1
+    endif
+  endfor
 -%}
 
 <section class="pl-sec" id="combos">
@@ -32,7 +38,7 @@
       {%- endif -%}
     </div>
 
-    {%- if combo_blocks.size > 0 -%}
+    {%- if configured_combo_count > 0 -%}
       <div class="pl-comborail pl-rv">
         {%- for block in combo_blocks -%}
           {%- if block.settings.combo != blank -%}

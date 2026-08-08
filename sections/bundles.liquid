@@ -10,6 +10,12 @@
 
 {%- liquid
   assign tier_blocks = section.blocks | where: 'type', 'tier'
+  assign configured_tier_count = 0
+  for block in tier_blocks
+    if block.settings.tier != blank
+      assign configured_tier_count = configured_tier_count | plus: 1
+    endif
+  endfor
 -%}
 
 <section class="pl-sec" id="bundles">
@@ -26,7 +32,7 @@
       </div>
     </div>
 
-    {%- if tier_blocks.size > 0 -%}
+    {%- if configured_tier_count > 0 -%}
       <div class="pl-tiers">
         {%- for block in tier_blocks -%}
           {%- if block.settings.tier != blank -%}
