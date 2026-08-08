@@ -11,11 +11,21 @@
   no unit price — the prototype doesn't show either for these 5 sections.
 
   Accepts:
-  - price: {Number} current price, in shop currency (required unless `product` given)
-  - compare_at: {Number} compare-at price (optional)
+  - price: {Number} current price, as a plain currency amount (e.g. 499
+    for ₹499 — the same way a merchant types it into a metaobject
+    decimal field or a section "number" setting). Required unless
+    `product` is given.
+  - compare_at: {Number} compare-at price, same plain-currency-amount
+    convention as `price` (optional)
   - product: {Object} Product; if given, `price`/`compare_at` default to
-    product.price / product.compare_at_price (both already integer cents,
-    Shopify's native representation)
+    product.price / product.compare_at_price — converted here from
+    Shopify's native integer-cents representation down to the same
+    plain currency amount `price`/`compare_at` use everywhere else in
+    this snippet, so the two input paths can share one code path instead
+    of one being in cents and the other not. (Getting this backwards —
+    running a metaobject's plain "499" through `money` as if it were
+    cents — renders "₹4.99" instead of "₹499"; that exact bug is why this
+    comment is this explicit.)
   - badge: {String} 'percent' renders "33% off", 'save' renders
     "Save {amount}". Omit for no computed badge.
   - badge_text: {String} explicit badge copy, skips the computed text above
@@ -28,14 +38,14 @@
 
   Usage:
   {% render 'purelane-price', product: product, badge: 'percent', pill: true %}
-  {% render 'purelane-price', price: combo.price, compare_at: combo.compare_at_price, badge: 'save', pill: true, wrapper_class: 'pl-combo__price' %}
+  {% render 'purelane-price', price: combo.price.value, compare_at: combo.compare_at_price.value, badge: 'save', pill: true, wrapper_class: 'pl-combo__price' %}
 {% endcomment %}
 {%- liquid
   if product and price == blank
-    assign price = product.price
+    assign price = product.price | divided_by: 100.0
   endif
   if product and compare_at == blank
-    assign compare_at = product.compare_at_price
+    assign compare_at = product.compare_at_price | divided_by: 100.0
   endif
 
   assign on_sale = false
@@ -49,15 +59,15 @@
       assign badge_text = pct | append: '% off'
     elsif badge == 'save'
       assign save_amount = compare_at | minus: price
-      assign save_money = save_amount | money
+      assign save_money = save_amount | times: 100 | money
       assign badge_text = 'Save ' | append: save_money
     endif
   endif
 -%}
 <div class="pl-price-row{% if pill %} pl-price-row--pill{% endif %}{% if wrapper_class %} {{ wrapper_class }}{% endif %}">
-  <strong>{{ price | money }}</strong>
+  <strong>{{ price | times: 100 | money }}</strong>
   {%- if on_sale -%}
-    <s>{{ compare_at | money }}</s>
+    <s>{{ compare_at | times: 100 | money }}</s>
   {%- endif -%}
   {%- if badge_text != blank -%}
     <em>{{ badge_text }}</em>

@@ -9,7 +9,12 @@
   drift from the two numbers it's derived from (the prototype's three
   tiers all show a per-product price that is in fact exactly
   round(price / quantity) — confirmed against all three before deciding
-  to compute rather than store).
+  to compute rather than store). Note the `| times: 100` before `| money`
+  below: `tier.price.value` is a plain currency amount (499, not 49900 —
+  metaobject decimal fields don't use Shopify's cents convention the way
+  `product.price` does), and the `money` filter always expects cents
+  regardless of source, so this needs the same conversion
+  snippets/purelane-price.liquid applies internally.
 
   Accepts:
   - tier: {Object} a `bundle_tier` metaobject (required)
@@ -47,7 +52,7 @@
   {%- render 'purelane-price', price: tier.price.value, compare_at: tier.compare_at_price.value, wrapper_class: 'pl-tier__price' -%}
 
   {%- if quantity > 0 -%}
-    <p class="pl-body-s pl-tier__unit">Flat {{ unit_price | money }} per product</p>
+    <p class="pl-body-s pl-tier__unit">Flat {{ unit_price | times: 100 | money }} per product</p>
   {%- endif -%}
 
   {%- if tier.features.value.size > 0 -%}
