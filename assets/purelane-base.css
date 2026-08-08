@@ -307,7 +307,7 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--pl-accent-green);
+  color: var(--pl-accent);
 }
 .pl-price-row.pl-price-row--pill em {
   font-size: 9.5px;
@@ -315,6 +315,13 @@
   border-radius: 999px;
   background: rgba(201, 118, 29, 0.14);
   border: 1px solid rgba(201, 118, 29, 0.34);
+}
+/* The prototype's badge colour is inconsistent by component — combo and
+   hero-stage savings badges are green (#4f7d10), the shop-card discount
+   badge stays the default orange accent. Preserved as-is (not
+   "corrected" to be consistent) per "the design is the spec." */
+.pl-price-row--accent-green em {
+  color: var(--pl-accent-green);
 }
 /* Forces the badge onto its own line below price+compare-at, e.g. the
    hero price tag — relies on .pl-price-row already being flex-wrap. */
