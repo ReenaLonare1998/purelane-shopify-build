@@ -1,0 +1,82 @@
+{% comment %}
+  Purelane — Bundles section. Source: purelane-homepage.html `#bundles`.
+
+  Each tier is a "tier" block referencing a `bundle_tier` metaobject (see
+  METAFIELDS.md) — same reusable-block pattern as combos.liquid.
+{% endcomment %}
+
+{{ 'purelane-base.css' | asset_url | stylesheet_tag }}
+{{ 'section-bundles.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign tier_blocks = section.blocks | where: 'type', 'tier'
+-%}
+
+<section class="pl-sec" id="bundles">
+  <div class="pl-wrap">
+    <div class="pl-glass pl-sec-pad pl-rv pl-bundles__intro">
+      <div class="pl-panel-head">
+        {%- if section.settings.kicker != blank -%}
+          <span class="pl-kicker">{{ section.settings.kicker }}</span>
+        {%- endif -%}
+        <h2 class="pl-d2">{{ section.settings.heading }}</h2>
+        {%- if section.settings.lede != blank -%}
+          <p class="pl-lede">{{ section.settings.lede }}</p>
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- if tier_blocks.size > 0 -%}
+      <div class="pl-tiers">
+        {%- for block in tier_blocks -%}
+          {%- if block.settings.tier != blank -%}
+            {%- comment -%} Matches the prototype's own stagger: 1st card has no delay, 2nd/3rd use rv-d2/rv-d3 (rv-d1 is intentionally skipped in the source). {%- endcomment -%}
+            {%- assign delay = forloop.index -%}
+            {%- if forloop.index == 1 -%}{%- assign delay = blank -%}{%- endif -%}
+            <div {{ block.shopify_attributes }}>
+              {%- render 'purelane-card-bundle-tier', tier: block.settings.tier, reveal_delay: delay -%}
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <div class="pl-glass pl-sec-pad pl-bundles__empty">
+        <p class="pl-body-s">Add a tier block and select a bundle tier to show it here.</p>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{{ 'purelane-reveal.js' | asset_url | script_tag }}
+
+{% schema %}
+{
+  "name": "Bundles",
+  "tag": "section",
+  "class": "pl-bundles-section",
+  "settings": [
+    { "type": "text", "id": "kicker", "label": "Kicker", "default": "Build your bundle" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "One box. Every room." },
+    { "type": "textarea", "id": "lede", "label": "Supporting text", "default": "Mix and match across kitchen, laundry, home and skin. One flat price, no code needed, free shipping either way." }
+  ],
+  "blocks": [
+    {
+      "type": "tier",
+      "name": "Bundle tier",
+      "settings": [
+        { "type": "metaobject", "id": "tier", "metaobject_type": "bundle_tier", "label": "Bundle tier" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Bundles",
+      "blocks": [
+        { "type": "tier" },
+        { "type": "tier" },
+        { "type": "tier" }
+      ]
+    }
+  ]
+}
+{% endschema %}
