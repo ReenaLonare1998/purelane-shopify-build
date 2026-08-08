@@ -1,10 +1,10 @@
 # Product seeding plan
 
-I can't create products in the dev store myself (no store exists yet —
-see BUILD_NOTES.md for the handoff). This is the exact list to seed so
-the theme, once installed, matches the build: 11 products (3 over the
-8-minimum), covering every category the prototype's own product art
-implies, plus the three required edge cases.
+The dev store exists and the theme is pushed (see BUILD_NOTES.md), but
+product creation is a manual admin-panel step I don't have write access
+to do myself. This is the exact list to seed so the theme matches the
+build: 11 products (3 over the 8-minimum), covering every category the
+prototype's own product art implies, plus the three required edge cases.
 
 Prices follow the prototype's own numbers (₹200 / ₹299 compare-at, 33%
 off) for every single-unit product, since that's the exact pair the hero
