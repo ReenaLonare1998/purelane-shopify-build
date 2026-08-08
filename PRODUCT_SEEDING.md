@@ -10,19 +10,63 @@ Prices follow the prototype's own numbers (₹200 / ₹299 compare-at, 33%
 off) for every single-unit product, since that's the exact pair the hero
 stage and shop-grid badge math were built against.
 
-| # | Title | Price | Compare-at | Image | Availability | Notes |
-|---|---|---|---|---|---|---|
-| 1 | Foaming Kitchen Cleaner | ₹200 | ₹299 | Yes | In stock | `purelane.badge_label`: "Best seller" · `rating_value`: 4.8 · `rating_count`: 254 |
-| 2 | Tap Cleaner & Limescale Remover | ₹200 | ₹299 | Yes | In stock | `badge_label`: "Best seller" · `rating_value`: 4.8 · `rating_count`: 237 |
-| 3 | Copper, Bronze & Brass Cleaner | ₹200 | ₹299 | Yes | **Sold out** | `badge_label`: "Top rated" · `rating_value`: 4.8 · `rating_count`: 231 — the required sold-out case |
-| 4 | Washing Machine Cleaner & Descaler | ₹200 | ₹299 | **None** | In stock | `badge_label`: "New" · `rating_value`: 4.8 · `rating_count`: 183 — the required no-image case (newly launched SKU, photography pending — a realistic reason for a real store to be missing one) |
-| 5 | Organic Dishwash Liquid Gel | ₹199 | ₹279 | Yes | In stock | `rating_value`: 4.7 · `rating_count`: 198 |
-| 6 | Non-Toxic Laundry Detergent, Concentrated Formula for Everyday Loads and Deep Stain Removal — Family Size | ₹349 | ₹499 | Yes | In stock | `rating_value`: 4.6 · `rating_count`: 142 — the required long-title case (tests `.pl-card__title`'s 2-line clamp) |
-| 7 | Natural Herbal Floor Cleaner | ₹220 | ₹319 | Yes | In stock | `rating_value`: 4.7 · `rating_count`: 176 |
-| 8 | Non-Toxic Toilet Cleaner | ₹200 | ₹299 | Yes | In stock | `rating_value`: 4.6 · `rating_count`: 121 |
-| 9 | Gentle Hydrating Liquid Handwash | ₹179 | ₹249 | Yes | In stock | `rating_value`: 4.8 · `rating_count`: 209 |
-| 10 | Fabric Conditioner | ₹229 | ₹329 | Yes | In stock | `rating_value`: 4.5 · `rating_count`: 88 |
-| 11 | Multi-Surface Magic Eraser (Pack of 3) | ₹149 | ₹199 | Yes | In stock | `rating_value`: 4.7 · `rating_count`: 96 |
+Do these in order. Most are plain "fill in the fields and save"; #3, #4,
+and #11 are the three required edge cases and each has one extra
+instruction called out in bold — don't skip those steps.
+
+For every product: **Products → Add product**, fill in Title, Price,
+Compare-at price, upload an image (except #4 — see below), Save, then
+set the 3 metafields under the product's **Metafields** section at the
+bottom of the page (create the definitions first per METAFIELDS.md if
+they don't exist yet — Settings → Custom data → Products → Add
+definition, three times: `purelane.badge_label` single line text,
+`purelane.rating_value` decimal, `purelane.rating_count` integer).
+
+- [ ] **1. Foaming Kitchen Cleaner** — Price ₹200, Compare-at ₹299,
+      upload image, in stock. Metafields: badge_label "Best seller",
+      rating_value 4.8, rating_count 254.
+- [ ] **2. Tap Cleaner & Limescale Remover** — Price ₹200, Compare-at
+      ₹299, upload image, in stock. Metafields: badge_label
+      "Best seller", rating_value 4.8, rating_count 237.
+- [ ] **3. Copper, Bronze & Brass Cleaner** — Price ₹200, Compare-at
+      ₹299, upload image. **Mark sold out**: in the Inventory section,
+      set "Continue selling when out of stock" off and set the tracked
+      quantity to 0 (or toggle the variant to "Sold out" directly if
+      your inventory setup doesn't track quantity). Metafields:
+      badge_label "Top rated", rating_value 4.8, rating_count 231. —
+      **this is the required sold-out product.**
+- [ ] **4. Washing Machine Cleaner & Descaler** — Price ₹200, Compare-at
+      ₹299, **do not upload an image, leave it blank**, in stock.
+      Metafields: badge_label "New", rating_value 4.8, rating_count 183.
+      — **this is the required no-image product.**
+- [ ] **5. Organic Dishwash Liquid Gel** — Price ₹199, Compare-at ₹279,
+      upload image, in stock. Metafields: rating_value 4.7, rating_count
+      198. (No badge_label — leave blank; confirms the shop card handles
+      "no badge" gracefully too.)
+- [ ] **6. Natural Herbal Floor Cleaner** — Price ₹220, Compare-at ₹319,
+      upload image, in stock. Metafields: rating_value 4.7, rating_count
+      176.
+- [ ] **7. Non-Toxic Toilet Cleaner** — Price ₹200, Compare-at ₹299,
+      upload image, in stock. Metafields: rating_value 4.6, rating_count
+      121.
+- [ ] **8. Gentle Hydrating Liquid Handwash** — Price ₹179, Compare-at
+      ₹249, upload image, in stock. Metafields: rating_value 4.8,
+      rating_count 209.
+- [ ] **9. Fabric Conditioner** — Price ₹229, Compare-at ₹329, upload
+      image, in stock. Metafields: rating_value 4.5, rating_count 88.
+- [ ] **10. Multi-Surface Magic Eraser (Pack of 3)** — Price ₹149,
+      Compare-at ₹199, upload image, in stock. Metafields: rating_value
+      4.7, rating_count 96.
+- [ ] **11. Non-Toxic Laundry Detergent, Concentrated Formula for
+      Everyday Loads and Deep Stain Removal — Family Size** — **paste
+      this exact long title, don't shorten it**, Price ₹349, Compare-at
+      ₹499, upload image, in stock. Metafields: rating_value 4.6,
+      rating_count 142. — **this is the required long-title product**
+      (tests the shop card's 2-line title clamp).
+
+Once all 11 exist: create a collection (e.g. "Bestsellers"), add all 11
+products to it, then point the Shop grid section's Collection setting at
+it.
 
 All copy above is realistic, brand-plausible placeholder — not Lorem
 Ipsum — but still placeholder, and should be reviewed against actual
