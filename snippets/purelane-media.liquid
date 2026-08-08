@@ -1,0 +1,92 @@
+{% comment %}
+  Renders a real, accessible, lazy-loaded product image — or a graceful
+  placeholder when there isn't one.
+
+  This replaces the prototype's entire product-art system, which drew
+  every bottle as a hand-authored base64 SVG baked into a CSS custom
+  property and painted via `background-image` on an empty
+  `<span role="img">` (see BUILD_NOTES.md). That approach ships every
+  product's artwork on every page regardless of which products are shown,
+  can't be lazy-loaded or resized per breakpoint, and isn't real Shopify
+  image data. This snippet is the fix: a real `<img>` sourced from the
+  product's own `image_url`-able object, or an explicit `pl-media-
+  placeholder` tile (not a blank space, not a broken-image icon) when a
+  product genuinely has no image — one of the required product-seeding
+  edge cases.
+
+  Not a copy of Dawn's own `snippets/product-media.liquid` — that snippet
+  is built around Dawn's media gallery (video/model/deferred-media,
+  zoom-on-click), none of which the prototype's simple product art needs.
+
+  Accepts:
+  - image: {Object} a Shopify image object (e.g. product.featured_image).
+    Pass nil/blank to render the no-image placeholder.
+  - alt: {String} accessible alt text — required in practice; used for
+    both the real <img> and the placeholder's aria-label
+  - width: {Number} intrinsic width (px) requested for the base <img src>
+    and used with the image's own aspect ratio to set an explicit
+    `height`, so the layout never shifts while the image loads (default 400)
+  - sizes: {String} the `sizes` attribute (default assumes a card in a
+    2–4 column responsive grid)
+  - class: {String} class(es) added to the rendered <img> — or, for a
+    placeholder, to its wrapping element — so callers can reuse the exact
+    sizing rules (e.g. `pl-card__image`) either way
+  - placeholder_label: {String} short text shown inside the no-image tile
+    (optional — the accessible label always comes from `alt`)
+  - fetchpriority: {String} 'high' for above-the-fold hero imagery that
+    should skip lazy-loading (optional — defaults to lazy-loaded)
+
+  Usage:
+  {% render 'purelane-media', image: product.featured_image, alt: product.title, width: 320, class: 'pl-card__image' %}
+{% endcomment %}
+{%- liquid
+  assign width = width | default: 400
+  assign sizes = sizes | default: '(min-width: 860px) 25vw, 50vw'
+-%}
+{%- if image != blank -%}
+  {%- if fetchpriority == 'high' -%}
+    <img
+      class="{{ class }}"
+      srcset="
+        {%- if image.width >= 200 -%}{{ image | image_url: width: 200 }} 200w,{%- endif -%}
+        {%- if image.width >= 400 -%}{{ image | image_url: width: 400 }} 400w,{%- endif -%}
+        {%- if image.width >= 600 -%}{{ image | image_url: width: 600 }} 600w,{%- endif -%}
+        {%- if image.width >= 900 -%}{{ image | image_url: width: 900 }} 900w,{%- endif -%}
+        {{ image | image_url: width: image.width }} {{ image.width }}w
+      "
+      sizes="{{ sizes }}"
+      src="{{ image | image_url: width: width }}"
+      alt="{{ alt | escape }}"
+      fetchpriority="high"
+      width="{{ width }}"
+      height="{{ width | divided_by: image.aspect_ratio | ceil }}"
+    >
+  {%- else -%}
+    <img
+      class="{{ class }}"
+      srcset="
+        {%- if image.width >= 200 -%}{{ image | image_url: width: 200 }} 200w,{%- endif -%}
+        {%- if image.width >= 400 -%}{{ image | image_url: width: 400 }} 400w,{%- endif -%}
+        {%- if image.width >= 600 -%}{{ image | image_url: width: 600 }} 600w,{%- endif -%}
+        {%- if image.width >= 900 -%}{{ image | image_url: width: 900 }} 900w,{%- endif -%}
+        {{ image | image_url: width: image.width }} {{ image.width }}w
+      "
+      sizes="{{ sizes }}"
+      src="{{ image | image_url: width: width }}"
+      alt="{{ alt | escape }}"
+      loading="lazy"
+      width="{{ width }}"
+      height="{{ width | divided_by: image.aspect_ratio | ceil }}"
+    >
+  {%- endif -%}
+{%- else -%}
+  <span class="{{ class }} pl-media-placeholder" role="img" aria-label="{{ alt | escape }}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 3 20.5 8v8L12 21 3.5 16V8L12 3Z"/>
+      <path d="M12 12 20.5 8M12 12v9M12 12 3.5 8"/>
+    </svg>
+    {%- if placeholder_label -%}
+      <span class="pl-media-placeholder__label">{{ placeholder_label }}</span>
+    {%- endif -%}
+  </span>
+{%- endif -%}

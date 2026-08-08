@@ -1,0 +1,73 @@
+{% comment %}
+  Renders one bundle-tier card (sections/bundles.liquid), driven by a
+  `bundle_tier` metaobject — see METAFIELDS.md for its field definitions.
+
+  Styling lives in assets/section-bundles.css, loaded by that section.
+
+  The "Flat ₹X per product" unit-price line is computed here from
+  price / quantity rather than stored as its own field, so it can never
+  drift from the two numbers it's derived from (the prototype's three
+  tiers all show a per-product price that is in fact exactly
+  round(price / quantity) — confirmed against all three before deciding
+  to compute rather than store).
+
+  Accepts:
+  - tier: {Object} a `bundle_tier` metaobject (required)
+  - reveal_delay: {Number 1-5} optional stagger index, applies pl-rv-dN
+
+  Usage:
+  {% render 'purelane-card-bundle-tier', tier: block.settings.tier %}
+{% endcomment %}
+{%- liquid
+  assign quantity = tier.quantity.value
+  assign unit_price = 0
+  if quantity and quantity > 0
+    assign unit_price = tier.price.value | divided_by: quantity | round
+  endif
+  assign preview_products = tier.preview_products.value
+-%}
+<article class="pl-glass pl-tier{% if tier.featured.value %} pl-tier--best{% endif %} pl-rv{% if reveal_delay %} pl-rv-d{{ reveal_delay }}{% endif %}">
+  {%- if tier.tag.value != blank -%}
+    <span class="pl-tier__tag">{{ tier.tag.value }}</span>
+  {%- endif -%}
+
+  {%- if preview_products.size > 0 -%}
+    <div class="pl-tierpix{% if preview_products.size >= 5 %} pl-tierpix--five{% endif %}" aria-hidden="true">
+      {%- for product in preview_products -%}
+        {%- render 'purelane-media', image: product.featured_image, alt: product.title, width: 120, sizes: '80px', class: 'pl-tierpix__image' -%}
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+
+  <div class="pl-tier__qty">
+    {{ quantity }}
+    <small>Products</small>
+  </div>
+
+  {%- render 'purelane-price', price: tier.price.value, compare_at: tier.compare_at_price.value, wrapper_class: 'pl-tier__price' -%}
+
+  {%- if quantity > 0 -%}
+    <p class="pl-body-s pl-tier__unit">Flat {{ unit_price | money }} per product</p>
+  {%- endif -%}
+
+  {%- if tier.features.value.size > 0 -%}
+    <ul class="pl-tier__features">
+      {%- for feature in tier.features.value -%}
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+          {{ feature }}
+        </li>
+      {%- endfor -%}
+    </ul>
+  {%- endif -%}
+
+  <a
+    class="pl-btn {% if tier.featured.value %}pl-btn-primary{% else %}pl-btn-ghost{% endif %} pl-tier__cta"
+    href="{{ tier.cta_link.value | default: '#' }}"
+  >
+    {{ tier.cta_label.value | default: 'Build this box' }}
+    {%- if tier.featured.value -%}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13m-5-6 6 6-6 6"/></svg>
+    {%- endif -%}
+  </a>
+</article>

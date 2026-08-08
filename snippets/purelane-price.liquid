@@ -1,0 +1,65 @@
+{% comment %}
+  Renders a Purelane-style price row: current price, optional struck
+  compare-at price, optional savings badge.
+
+  Not a copy of Dawn's own `snippets/price.liquid` — that snippet's output
+  (`.price`, `.price__regular`, description-list markup for volume
+  pricing) is a different DOM shape than the prototype's minimal
+  `strong + s + em` row, so matching the design pixel-for-pixel means
+  writing this instead of forcing Dawn's price component into the
+  prototype's CSS. Kept deliberately smaller in scope: no volume pricing,
+  no unit price — the prototype doesn't show either for these 5 sections.
+
+  Accepts:
+  - price: {Number} current price, in shop currency (required unless `product` given)
+  - compare_at: {Number} compare-at price (optional)
+  - product: {Object} Product; if given, `price`/`compare_at` default to
+    product.price / product.compare_at_price (both already integer cents,
+    Shopify's native representation)
+  - badge: {String} 'percent' renders "33% off", 'save' renders
+    "Save {amount}". Omit for no computed badge.
+  - badge_text: {String} explicit badge copy, skips the computed text above
+  - pill: {Boolean} true renders the badge as a filled pill (shop card,
+    combo card); false renders it as plain text (bundle tier has no badge
+    at all, so this only matters when a badge is present)
+  - wrapper_class: {String} extra class(es) on the wrapping element, on
+    top of the shared `pl-price-row` styling — lets each card snippet
+    apply its own layout tweaks (e.g. combos use a larger price)
+
+  Usage:
+  {% render 'purelane-price', product: product, badge: 'percent', pill: true %}
+  {% render 'purelane-price', price: combo.price, compare_at: combo.compare_at_price, badge: 'save', pill: true, wrapper_class: 'pl-combo__price' %}
+{% endcomment %}
+{%- liquid
+  if product and price == blank
+    assign price = product.price
+  endif
+  if product and compare_at == blank
+    assign compare_at = product.compare_at_price
+  endif
+
+  assign on_sale = false
+  if compare_at and price and compare_at > price
+    assign on_sale = true
+  endif
+
+  if badge_text == blank and on_sale
+    if badge == 'percent'
+      assign pct = compare_at | minus: price | times: 100.0 | divided_by: compare_at | round
+      assign badge_text = pct | append: '% off'
+    elsif badge == 'save'
+      assign save_amount = compare_at | minus: price
+      assign save_money = save_amount | money
+      assign badge_text = 'Save ' | append: save_money
+    endif
+  endif
+-%}
+<div class="pl-price-row{% if pill %} pl-price-row--pill{% endif %}{% if wrapper_class %} {{ wrapper_class }}{% endif %}">
+  <strong>{{ price | money }}</strong>
+  {%- if on_sale -%}
+    <s>{{ compare_at | money }}</s>
+  {%- endif -%}
+  {%- if badge_text != blank -%}
+    <em>{{ badge_text }}</em>
+  {%- endif -%}
+</div>

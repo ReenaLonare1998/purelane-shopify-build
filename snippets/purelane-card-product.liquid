@@ -1,0 +1,75 @@
+{% comment %}
+  Renders one product card for the Shop grid (sections/shop-grid.liquid).
+
+  Styling lives in assets/section-shop-grid.css, loaded by that section —
+  this snippet only emits markup so the section stays the single owner of
+  its own CSS payload.
+
+  Handles the three seeding edge cases the assignment explicitly requires:
+  - Sold out: `product.available == false` swaps the CTA for a disabled
+    "Sold out" button and adds a pill on the image, instead of leaving a
+    live "Add to cart" button on an unbuyable product.
+  - No image: delegates to snippets/purelane-media.liquid, which renders
+    an accessible dashed-tile placeholder instead of a blank box or a
+    broken-image icon.
+  - Very long title: `.pl-card__title` clamps to 2 lines with an ellipsis
+    (see CSS) and carries the full title as both its text content (for
+    screen readers/copy-paste) and a `title` attribute (for a native
+    tooltip on hover/focus) — nothing is truncated from the accessible
+    name, only from the visual box.
+
+  Accepts:
+  - product: {Object} Product Liquid object (required)
+  - reveal_delay: {Number 1-5} optional stagger index, applies pl-rv-dN
+
+  Usage:
+  {% render 'purelane-card-product', product: product, reveal_delay: 2 %}
+{% endcomment %}
+{%- liquid
+  assign badge_label = product.metafields.purelane.badge_label.value
+  assign rating_value = product.metafields.purelane.rating_value.value
+  assign rating_count = product.metafields.purelane.rating_count.value
+  assign variant = product.selected_or_first_available_variant
+-%}
+<article class="pl-glass pl-card pl-rv{% if reveal_delay %} pl-rv-d{{ reveal_delay }}{% endif %}">
+  <div class="pl-card__shot">
+    {%- if product.available == false -%}
+      <span class="pl-card__pill pl-card__pill--sold-out">{{ 'products.product.sold_out' | t }}</span>
+    {%- elsif badge_label != blank -%}
+      <span class="pl-card__pill">{{ badge_label }}</span>
+    {%- endif -%}
+    {%- render 'purelane-media',
+      image: product.featured_image,
+      alt: product.featured_image.alt | default: product.title,
+      width: 300,
+      sizes: '(min-width: 860px) 22vw, 45vw',
+      class: 'pl-card__image',
+      placeholder_label: product.title
+    -%}
+  </div>
+
+  <h3 class="pl-card__title" title="{{ product.title | escape }}">{{ product.title }}</h3>
+
+  {%- if rating_value != blank and rating_count != blank -%}
+    <div class="pl-card__rate">
+      <b aria-hidden="true">&#9733; {{ rating_value }}</b>
+      <span class="visually-hidden">Rated {{ rating_value }} out of 5</span>
+      <span>&middot; {{ rating_count }} reviews</span>
+    </div>
+  {%- endif -%}
+
+  {%- render 'purelane-price', product: product, badge: 'percent', pill: true, wrapper_class: 'pl-card__price' -%}
+
+  {%- if product.available and variant != blank -%}
+    <form action="{{ routes.cart_add_url }}" method="post" class="pl-card__form">
+      <input type="hidden" name="id" value="{{ variant.id }}">
+      <button type="submit" class="pl-btn pl-btn-ghost pl-btn-sm pl-card__cta">
+        {{ 'products.product.add_to_cart' | t }}
+      </button>
+    </form>
+  {%- else -%}
+    <button type="button" class="pl-btn pl-btn-ghost pl-btn-sm pl-card__cta" disabled aria-disabled="true">
+      {{ 'products.product.sold_out' | t }}
+    </button>
+  {%- endif -%}
+</article>

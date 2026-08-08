@@ -1,0 +1,80 @@
+{% comment %}
+  Renders one "best-selling combo" card (sections/combos.liquid), driven
+  by a `combo` metaobject — see METAFIELDS.md for its field definitions.
+
+  Styling lives in assets/section-combos.css, loaded by that section.
+
+  Each tray slot in `combo.items` is a `combo_item` metaobject that either
+  references a real product (rendered via snippets/purelane-media.liquid,
+  a real lazy-loaded image) or has no product at all, in which case the
+  slot renders the shared dashed-tile placeholder with just its caption —
+  matching the prototype's own "generic benefit, no specific product"
+  tray slots (e.g. "Softens & freshens every wash" in the laundry combo)
+  instead of forcing every slot to pretend it has a product photo.
+
+  Accepts:
+  - combo: {Object} a `combo` metaobject (required)
+  - reveal_delay: {Number 1-5} optional stagger index, applies pl-rv-dN
+
+  Usage:
+  {% render 'purelane-card-combo', combo: block.settings.combo %}
+{% endcomment %}
+{%- liquid
+  assign items = combo.items.value
+  assign item_count = items.size
+-%}
+<article class="pl-glass pl-combo{% if combo.featured.value %} pl-combo--featured{% endif %} pl-rv{% if reveal_delay %} pl-rv-d{{ reveal_delay }}{% endif %}">
+  <div class="pl-combo__tray">
+    {%- if combo.tray_label.value != blank -%}
+      <span class="pl-combo__save">{{ combo.tray_label.value }}</span>
+    {%- endif -%}
+    {%- if combo.flag_label.value != blank -%}
+      <span class="pl-combo__flag">{{ combo.flag_label.value }}</span>
+    {%- endif -%}
+    <div class="pl-combo__stack">
+      {%- for item in items -%}
+        <span class="pl-combo__item">
+          {%- assign item_product = item.product.value -%}
+          {%- render 'purelane-media',
+            image: item_product.featured_image,
+            alt: item_product.title | default: item.caption.value,
+            width: 132,
+            sizes: '90px',
+            class: 'pl-combo__item-image',
+            placeholder_label: item.caption.value
+          -%}
+          <span>{{ item.caption.value }}</span>
+        </span>
+        {%- unless forloop.last -%}
+          <span class="pl-combo__plus" aria-hidden="true">+</span>
+        {%- endunless -%}
+      {%- endfor -%}
+    </div>
+  </div>
+
+  <div class="pl-combo__body">
+    <h3>{{ combo.title.value }}</h3>
+    <div class="pl-combo__count">{{ item_count }} products</div>
+    <p class="pl-combo__inc">{{ combo.description.value }}</p>
+
+    {%- render 'purelane-price',
+      price: combo.price.value,
+      compare_at: combo.compare_at_price.value,
+      badge: 'save',
+      pill: true,
+      wrapper_class: 'pl-combo__price'
+    -%}
+
+    {%- if combo.fine_print.value != blank -%}
+      <div class="pl-combo__fine">{{ combo.fine_print.value }}</div>
+    {%- endif -%}
+
+    <a
+      class="pl-btn {% if combo.featured.value %}pl-btn-primary{% else %}pl-btn-ghost{% endif %} pl-combo__cta"
+      href="{{ combo.cta_link.value | default: '#' }}"
+    >
+      {{ combo.cta_label.value | default: 'Shop bundle' }}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13m-5-6 6 6-6 6"/></svg>
+    </a>
+  </div>
+</article>

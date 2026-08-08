@@ -1,0 +1,47 @@
+{% comment %}
+  Renders one testimonial card in the reviews rail
+  (sections/reviews-rail.liquid), driven by a `review` metaobject — see
+  METAFIELDS.md for its field definitions.
+
+  Styling lives in assets/section-reviews-rail.css, loaded by that section.
+
+  The prototype rendered ratings as five literal "★" characters with no
+  accessible name — a screen reader announces the raw glyphs, not a
+  rating. This snippet keeps the visual stars (aria-hidden) and adds a
+  real "Rated N out of 5" accessible label instead, using Dawn's own
+  `visually-hidden` utility class rather than inventing a duplicate.
+
+  Accepts:
+  - review: {Object} a `review` metaobject (required)
+  - reveal_delay: {Number 1-5} optional stagger index, applies pl-rv-dN
+  - aria_hidden: {Boolean} true marks the whole card aria-hidden — used
+    for the marquee's duplicated second pass so screen readers don't
+    announce every review twice (see sections/reviews-rail.liquid)
+
+  Usage:
+  {% render 'purelane-card-review', review: block.settings.review %}
+{% endcomment %}
+{%- liquid
+  assign rating = review.rating.value | default: 5
+-%}
+<article class="pl-glass-2 pl-rcard"{% if reveal_delay %} data-reveal-delay="{{ reveal_delay }}"{% endif %}{% if aria_hidden %} aria-hidden="true"{% endif %}>
+  <div class="pl-rcard__stars" {% if aria_hidden %}aria-hidden="true"{% endif %}>
+    <span aria-hidden="true">
+      {%- for i in (1..5) -%}
+        {%- if i <= rating -%}&#9733;{%- else -%}&#9734;{%- endif -%}
+      {%- endfor -%}
+    </span>
+    {%- unless aria_hidden -%}
+      <span class="visually-hidden">Rated {{ rating }} out of 5</span>
+    {%- endunless -%}
+  </div>
+  <h3>{{ review.title.value }}</h3>
+  <p>{{ review.quote.value }}</p>
+  <div class="pl-rcard__who">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 13 4 4L19 7"/></svg>
+    <b>{{ review.reviewer_name.value }}</b>
+    {%- if review.product_purchased.value != blank -%}
+      <span>&middot; {{ review.product_purchased.value }}</span>
+    {%- endif -%}
+  </div>
+</article>
