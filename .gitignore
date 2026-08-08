@@ -1,0 +1,19 @@
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.shopify
+node_modules
+*.zip
+
+# Editor / tooling #
+####################
+.vscode/
+.idea/
+*.swp
+.claude/
