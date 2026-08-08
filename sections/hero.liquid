@@ -1,0 +1,191 @@
+{% comment %}
+  Purelane — Hero section. Source: purelane-homepage.html `section.hero`.
+
+  Structure/behaviour kept pixel-accurate to the prototype: 3-slide
+  auto-rotating product stage (1 -> 2 -> 3 products), promise badges
+  (desktop rail + mobile strip, now driven by ONE shared block list so
+  the two layouts can't drift out of sync the way the prototype's two
+  hand-authored copies could), animated water backdrop.
+
+  See BUILD_NOTES.md for what changed from the prototype and why.
+{% endcomment %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+{{ 'purelane-base.css' | asset_url | stylesheet_tag }}
+{{ 'purelane-scene.css' | asset_url | stylesheet_tag }}
+{{ 'section-hero.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign promise_blocks = section.blocks | where: 'type', 'promise'
+  assign slide_blocks = section.blocks | where: 'type', 'slide'
+-%}
+
+<section class="pl-hero">
+  {% render 'purelane-scene-bg' %}
+
+  <div class="pl-hero-grid">
+
+    {%- if promise_blocks.size > 0 -%}
+      <div class="pl-badges pl-glass-2" aria-label="Product promises">
+        {%- for block in promise_blocks -%}
+          <div class="pl-badge" {{ block.shopify_attributes }}>
+            <span class="pl-badge__icon">{% render 'purelane-icon', icon: block.settings.icon %}</span>
+            <span>{{ block.settings.label }}</span>
+          </div>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    <div class="pl-hero-copy">
+      <h1 class="pl-d1 pl-rv pl-in">
+        {{ section.settings.heading_line_1 }}<br>
+        {{ section.settings.heading_line_2 }}<br>
+        <span class="pl-lime">{{ section.settings.heading_highlight }}</span>
+      </h1>
+      <div class="pl-rule pl-rv pl-rv-d1">
+        <i></i>
+        {% render 'purelane-icon', icon: 'leaf' %}
+        <i></i>
+      </div>
+      {%- if section.settings.lede != blank -%}
+        <p class="pl-lede pl-rv pl-rv-d2">{{ section.settings.lede }}</p>
+      {%- endif -%}
+      <div class="pl-hero-cta pl-rv pl-rv-d3">
+        {%- if section.settings.cta_primary_label != blank -%}
+          <a class="pl-btn pl-btn-primary" href="{{ section.settings.cta_primary_link | default: '#' }}">
+            {{ section.settings.cta_primary_label }}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13m-5-6 6 6-6 6"/></svg>
+          </a>
+        {%- endif -%}
+        {%- if section.settings.cta_secondary_label != blank -%}
+          <a class="pl-btn pl-btn-ghost" href="{{ section.settings.cta_secondary_link | default: '#' }}">{{ section.settings.cta_secondary_label }}</a>
+        {%- endif -%}
+      </div>
+
+      {%- if promise_blocks.size > 0 -%}
+        <div class="pl-badgestrip pl-rv pl-rv-d4">
+          {%- for block in promise_blocks -%}
+            <div class="pl-glass-2" {{ block.shopify_attributes }}>
+              {% render 'purelane-icon', icon: block.settings.icon %}
+              {{ block.settings.label }}
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- if slide_blocks.size > 0 -%}
+      <div class="pl-hero-prod">
+        <div class="pl-hstage">
+          {%- for slide in slide_blocks -%}
+            {%- assign pcount = 0 -%}
+            {%- if slide.settings.product_1 != blank -%}{%- assign pcount = pcount | plus: 1 -%}{%- endif -%}
+            {%- if slide.settings.product_2 != blank -%}{%- assign pcount = pcount | plus: 1 -%}{%- endif -%}
+            {%- if slide.settings.product_3 != blank -%}{%- assign pcount = pcount | plus: 1 -%}{%- endif -%}
+            <div class="pl-hslide pl-hs{{ pcount }}{% if forloop.first %} pl-on{% endif %}" {{ slide.shopify_attributes }}>
+              {%- if slide.settings.product_1 != blank -%}
+                <span class="pl-hp a">
+                  {%- if forloop.first -%}
+                    {%- render 'purelane-media', image: slide.settings.product_1.featured_image, alt: slide.settings.product_1.title, width: 480, sizes: '(min-width: 900px) 40vw, 80vw', class: 'pl-hp__image', fetchpriority: 'high' -%}
+                  {%- else -%}
+                    {%- render 'purelane-media', image: slide.settings.product_1.featured_image, alt: slide.settings.product_1.title, width: 480, sizes: '(min-width: 900px) 40vw, 80vw', class: 'pl-hp__image' -%}
+                  {%- endif -%}
+                </span>
+              {%- endif -%}
+              {%- if slide.settings.product_2 != blank -%}
+                <span class="pl-hp b">
+                  {%- render 'purelane-media', image: slide.settings.product_2.featured_image, alt: slide.settings.product_2.title, width: 480, sizes: '(min-width: 900px) 40vw, 80vw', class: 'pl-hp__image' -%}
+                </span>
+              {%- endif -%}
+              {%- if slide.settings.product_3 != blank -%}
+                <span class="pl-hp c">
+                  {%- render 'purelane-media', image: slide.settings.product_3.featured_image, alt: slide.settings.product_3.title, width: 480, sizes: '(min-width: 900px) 40vw, 80vw', class: 'pl-hp__image' -%}
+                </span>
+              {%- endif -%}
+              <div class="pl-glass-2 pl-ptag">
+                <span class="pl-ptag__lbl">{{ slide.settings.label }}</span>
+                {%- render 'purelane-price', price: slide.settings.price, compare_at: slide.settings.compare_at_price, badge: slide.settings.badge_mode, pill: true, wrapper_class: 'pl-ptag__val pl-price-row--stacked' -%}
+              </div>
+            </div>
+          {%- endfor -%}
+        </div>
+        {%- if slide_blocks.size > 1 -%}
+          <div class="pl-hdots">
+            {%- for slide in slide_blocks -%}
+              <button type="button" class="{% if forloop.first %}pl-on{% endif %}" aria-label="Show slide {{ forloop.index }} of {{ slide_blocks.size }}" aria-current="{% if forloop.first %}true{% else %}false{% endif %}"></button>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+  </div>
+</section>
+
+{{ 'purelane-reveal.js' | asset_url | script_tag }}
+{{ 'purelane-hero.js' | asset_url | script_tag }}
+
+{% schema %}
+{
+  "name": "Hero",
+  "tag": "section",
+  "class": "pl-hero-section",
+  "settings": [
+    { "type": "header", "content": "Heading" },
+    { "type": "text", "id": "heading_line_1", "label": "Heading, line 1", "default": "Clean" },
+    { "type": "text", "id": "heading_line_2", "label": "Heading, line 2", "default": "That" },
+    { "type": "text", "id": "heading_highlight", "label": "Heading, highlighted line", "default": "Lasts" },
+    { "type": "textarea", "id": "lede", "label": "Supporting text", "default": "Homecare that works on the toughest grime, made from plants. Kind to your home, your family and the world outside it." },
+    { "type": "header", "content": "Buttons" },
+    { "type": "text", "id": "cta_primary_label", "label": "Primary button label", "default": "Shop now" },
+    { "type": "url", "id": "cta_primary_link", "label": "Primary button link" },
+    { "type": "text", "id": "cta_secondary_label", "label": "Secondary button label", "default": "How it works" },
+    { "type": "url", "id": "cta_secondary_link", "label": "Secondary button link" }
+  ],
+  "blocks": [
+    {
+      "type": "promise",
+      "name": "Promise badge",
+      "settings": [
+        { "type": "select", "id": "icon", "label": "Icon", "options": [
+          { "value": "leaf", "label": "Leaf" },
+          { "value": "shield", "label": "Shield check" },
+          { "value": "no-chem", "label": "No chemicals" }
+        ], "default": "leaf" },
+        { "type": "text", "id": "label", "label": "Label", "default": "Plant powered" }
+      ]
+    },
+    {
+      "type": "slide",
+      "name": "Product stage slide",
+      "settings": [
+        { "type": "product", "id": "product_1", "label": "Product 1" },
+        { "type": "product", "id": "product_2", "label": "Product 2 (optional)" },
+        { "type": "product", "id": "product_3", "label": "Product 3 (optional)" },
+        { "type": "text", "id": "label", "label": "Slide label", "default": "Single bottle" },
+        { "type": "number", "id": "price", "label": "Price" },
+        { "type": "number", "id": "compare_at_price", "label": "Compare-at price" },
+        { "type": "select", "id": "badge_mode", "label": "Savings badge style", "options": [
+          { "value": "percent", "label": "Percent off (e.g. 33% off)" },
+          { "value": "save", "label": "Amount saved (e.g. Save ₹249)" }
+        ], "default": "percent" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero",
+      "blocks": [
+        { "type": "promise", "settings": { "icon": "leaf", "label": "Plant powered" } },
+        { "type": "promise", "settings": { "icon": "shield", "label": "Safe for kids & pets" } },
+        { "type": "promise", "settings": { "icon": "no-chem", "label": "Zero harsh chemicals" } },
+        { "type": "slide", "settings": { "label": "Single bottle", "price": 200, "compare_at_price": 299, "badge_mode": "percent" } },
+        { "type": "slide", "settings": { "label": "Any 2 products", "price": 349, "compare_at_price": 598, "badge_mode": "save" } },
+        { "type": "slide", "settings": { "label": "Any 3 products", "price": 499, "compare_at_price": 897, "badge_mode": "save" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

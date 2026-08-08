@@ -316,6 +316,12 @@
   background: rgba(201, 118, 29, 0.14);
   border: 1px solid rgba(201, 118, 29, 0.34);
 }
+/* Forces the badge onto its own line below price+compare-at, e.g. the
+   hero price tag — relies on .pl-price-row already being flex-wrap. */
+.pl-price-row--stacked em {
+  flex-basis: 100%;
+  margin-top: 7px;
+}
 
 /* ---------- shared "no image" placeholder (see snippets/purelane-media.liquid) ---------- */
 .pl-media-placeholder {

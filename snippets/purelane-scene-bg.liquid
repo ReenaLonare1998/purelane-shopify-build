@@ -1,0 +1,47 @@
+{% comment %}
+  Renders the animated "water" ambient background behind Hero and
+  Reviews — the design's signature immersive visual treatment.
+
+  The prototype ran this as ONE fixed full-page layer, crossfading
+  between 4 colour "depths" via JS that measured every [data-scene]
+  section's scroll offset across the whole page — including several
+  out-of-scope sections between Hero and Reviews. That coupling is
+  exactly the kind of thing that breaks once sections can be
+  independently added/removed/reordered (removing one section shifts
+  every offset below it), so it isn't ported as-is. Both Hero and Reviews
+  used the same depth ("scene 1") in the original anyway, so nothing
+  visible is lost by giving each section its own self-contained,
+  statically-scene-1 copy of this background instead: same look, no
+  cross-section JS dependency, survives being reordered/duplicated/
+  removed independently. See BUILD_NOTES.md.
+
+  The four water "layers" were ~4-8KB of hand-authored inline SVG each,
+  and were duplicated inline wherever the background appeared with
+  clashing element ids (two layers both declared id="cg" and id="wf" in
+  the same document — invalid SVG, and a real latent bug: which gradient
+  a later `url(#cg)` reference resolves to becomes browser-dependent).
+  Extracted to four external, cacheable SVG assets referenced by <img>
+  instead — loaded once, reused by every instance of this snippet, no id
+  collisions possible since each file is its own document.
+
+  Every animation here (water drift, bubble rise) is plain CSS —
+  see assets/purelane-scene.css — so this snippet needs no JS at all,
+  and is fully inert (no motion, no layout cost beyond the static
+  gradient) under prefers-reduced-motion.
+
+  Usage:
+  {% render 'purelane-scene-bg' %}
+{% endcomment %}
+<div class="pl-scene-bg" aria-hidden="true">
+  <div class="pl-scene-bg__gradient"></div>
+  <div class="pl-scene-bg__water">
+    <img class="pl-water-layer pl-water-a" src="{{ 'purelane-water-a.svg' | asset_url }}" alt="" width="1800" height="1100" loading="lazy">
+    <img class="pl-water-layer pl-water-b" src="{{ 'purelane-water-b.svg' | asset_url }}" alt="" width="1800" height="1100" loading="lazy">
+    <img class="pl-water-layer pl-water-c" src="{{ 'purelane-water-c.svg' | asset_url }}" alt="" width="1800" height="1100" loading="lazy">
+    <img class="pl-water-layer pl-water-s" src="{{ 'purelane-water-s.svg' | asset_url }}" alt="" width="1800" height="1100" loading="lazy">
+    <div class="pl-bub">
+      <span style="--x:91.9%;--s:6.7px;--dur:21.5s;--dly:19.0s;--drift:-11px"></span><span style="--x:43.4%;--s:5.7px;--dur:26.8s;--dly:16.1s;--drift:-11px"></span><span style="--x:96.6%;--s:6.2px;--dur:13.7s;--dly:10.3s;--drift:38px"></span><span style="--x:6.0%;--s:3.6px;--dur:24.4s;--dly:10.6s;--drift:3px"></span><span style="--x:70.3%;--s:3.3px;--dur:20.9s;--dly:9.2s;--drift:-39px"></span><span style="--x:67.7%;--s:4.0px;--dur:27.0s;--dly:16.5s;--drift:-5px"></span><span style="--x:2.1%;--s:7.1px;--dur:22.0s;--dly:3.1s;--drift:-37px"></span><span style="--x:69.4%;--s:8.1px;--dur:21.9s;--dly:10.7s;--drift:-24px"></span><span style="--x:64.1%;--s:8.2px;--dur:17.3s;--dly:9.0s;--drift:2px"></span><span style="--x:21.8%;--s:7.1px;--dur:15.7s;--dly:18.4s;--drift:-13px"></span><span style="--x:61.9%;--s:6.6px;--dur:26.3s;--dly:7.2s;--drift:-23px"></span><span style="--x:45.9%;--s:8.9px;--dur:24.3s;--dly:7.2s;--drift:20px"></span><span style="--x:52.5%;--s:3.3px;--dur:20.2s;--dly:19.6s;--drift:-31px"></span><span style="--x:11.1%;--s:7.9px;--dur:20.4s;--dly:10.8s;--drift:-40px"></span><span style="--x:7.6%;--s:6.4px;--dur:19.5s;--dly:0.2s;--drift:-26px"></span><span style="--x:18.6%;--s:9.0px;--dur:24.5s;--dly:8.7s;--drift:13px"></span>
+    </div>
+  </div>
+  <div class="pl-scene-bg__vignette"></div>
+</div>
