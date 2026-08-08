@@ -13,18 +13,24 @@
 
   Accepts:
   - review: {Object} a `review` metaobject (required)
-  - reveal_delay: {Number 1-5} optional stagger index, applies pl-rv-dN
   - aria_hidden: {Boolean} true marks the whole card aria-hidden — used
     for the marquee's duplicated second pass so screen readers don't
     announce every review twice (see sections/reviews-rail.liquid)
+  - block_attributes: {String} raw `block.shopify_attributes` output to
+    inject on the <article> so the theme editor can select/highlight this
+    instance — only pass this for the real (non-duplicated) pass
+
+  Note: no per-card reveal-on-scroll delay setting here — the prototype
+  fades in the whole rail as one unit (`.revrail.rv`), not each card
+  individually, and this snippet matches that.
 
   Usage:
-  {% render 'purelane-card-review', review: block.settings.review %}
+  {% render 'purelane-card-review', review: block.settings.review, block_attributes: block.shopify_attributes %}
 {% endcomment %}
 {%- liquid
   assign rating = review.rating.value | default: 5
 -%}
-<article class="pl-glass-2 pl-rcard"{% if reveal_delay %} data-reveal-delay="{{ reveal_delay }}"{% endif %}{% if aria_hidden %} aria-hidden="true"{% endif %}>
+<article class="pl-glass-2 pl-rcard"{% if block_attributes %} {{ block_attributes }}{% endif %}{% if aria_hidden %} aria-hidden="true"{% endif %}>
   <div class="pl-rcard__stars" {% if aria_hidden %}aria-hidden="true"{% endif %}>
     <span aria-hidden="true">
       {%- for i in (1..5) -%}
