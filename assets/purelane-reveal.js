@@ -53,15 +53,20 @@
   }
 
   function revealEager(el) {
-    // Double rAF: guarantees the browser has painted the initial
-    // opacity:0/blur state at least once before pl-in is added, so the
-    // CSS transition actually animates instead of snapping straight to
-    // its end state.
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        el.classList.add('pl-in');
-      });
-    });
+    // setTimeout, not requestAnimationFrame: rAF callbacks are throttled
+    // or fully suspended by the browser while a tab is backgrounded/not
+    // visible, which would leave this element stuck mid-transition
+    // indefinitely on a tab that loses focus during load (confirmed live
+    // — the first version of this function used double-rAF and never
+    // fired at all under exactly that condition). setTimeout still fires
+    // on background tabs, so the element reliably reveals either way; a
+    // short delay is enough on a visible tab for the browser to have
+    // already painted the initial hidden state at least once, so the
+    // transition still animates rather than snapping straight to its end
+    // state.
+    setTimeout(function () {
+      el.classList.add('pl-in');
+    }, 50);
   }
 
   function reveal(el) {
