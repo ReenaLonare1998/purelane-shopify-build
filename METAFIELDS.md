@@ -7,17 +7,21 @@ and hand-picked testimonials. None of it is faked with hardcoded section
 text; each is a real metafield/metaobject definition to be created in the
 dev store (Settings → Custom data).
 
-All Purelane-specific definitions live under the `purelane` namespace so
-they're easy to find and won't collide with definitions any app installs
-later.
+The product metafields below live under the `custom` namespace, not a
+Purelane-specific one — the standard Shopify admin's Settings → Custom
+data → definitions UI only lets you create definitions under `custom`;
+an arbitrary namespace like `purelane` requires the Metafields API
+directly (via an app or GraphQL Admin API), which isn't part of this
+build. `custom` is what the dev store's admin actually created these
+as, and what the theme code reads.
 
 ## Product metafields
 
 | Namespace | Key | Type | Purpose |
 |---|---|---|---|
-| `purelane` | `badge_label` | Single line text | Optional pill shown on the shop-grid card (`Best seller`, `Top rated`, `New`). Blank = no pill rendered. Free text rather than a fixed list because merchandising language changes seasonally. |
-| `purelane` | `rating_value` | Decimal | Star rating shown on the shop-grid card (e.g. `4.8`). Not a review-app field — see note below. |
-| `purelane` | `rating_count` | Integer | Review count shown next to the rating (e.g. `237`). |
+| `custom` | `badge_label` | Single line text | Optional pill shown on the shop-grid card (`Best seller`, `Top rated`, `New`). Blank = no pill rendered. Free text rather than a fixed list because merchandising language changes seasonally. |
+| `custom` | `rating_value` | Decimal | Star rating shown on the shop-grid card (e.g. `4.8`). Not a review-app field — see note below. |
+| `custom` | `rating_count` | Integer | Review count shown next to the rating (e.g. `237`). |
 
 **Note on ratings:** the dev store has no reviews app installed, so there's
 no `product.metafields.reviews.rating` to read. These two fields stand in

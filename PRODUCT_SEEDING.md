@@ -19,8 +19,10 @@ Compare-at price, upload an image (except #4 — see below), Save, then
 set the 3 metafields under the product's **Metafields** section at the
 bottom of the page (create the definitions first per METAFIELDS.md if
 they don't exist yet — Settings → Custom data → Products → Add
-definition, three times: `purelane.badge_label` single line text,
-`purelane.rating_value` decimal, `purelane.rating_count` integer).
+definition, three times: `custom.badge_label` single line text,
+`custom.rating_value` decimal, `custom.rating_count` integer — this
+admin only allows the `custom` namespace for metafield definitions, not
+an arbitrary one like `purelane`, so that's what the theme code reads).
 
 - [ ] **1. Foaming Kitchen Cleaner** — Price ₹200, Compare-at ₹299,
       upload image, in stock. Metafields: badge_label "Best seller",
