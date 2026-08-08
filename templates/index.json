@@ -1,75 +1,48 @@
 {
   "sections": {
-    "image_banner": {
-      "type": "image-banner",
+    "pl_hero": {
+      "type": "hero",
       "blocks": {
-        "heading": {
-          "type": "heading",
-          "settings": {
-            "heading": "Browse our latest products",
-            "heading_size": "h0"
-          }
-        },
-        "button": {
-          "type": "buttons",
-          "settings": {
-            "button_label_1": "Shop all",
-            "button_link_1": "shopify://collections/all",
-            "button_style_secondary_1": true,
-            "button_label_2": "",
-            "button_link_2": "",
-            "button_style_secondary_2": false
-          }
-        }
+        "promise_1": { "type": "promise", "settings": { "icon": "leaf", "label": "Plant powered" } },
+        "promise_2": { "type": "promise", "settings": { "icon": "shield", "label": "Safe for kids & pets" } },
+        "promise_3": { "type": "promise", "settings": { "icon": "no-chem", "label": "Zero harsh chemicals" } },
+        "slide_1": { "type": "slide", "settings": { "label": "Single bottle", "price": 200, "compare_at_price": 299, "badge_mode": "percent" } },
+        "slide_2": { "type": "slide", "settings": { "label": "Any 2 products", "price": 349, "compare_at_price": 598, "badge_mode": "save" } },
+        "slide_3": { "type": "slide", "settings": { "label": "Any 3 products", "price": 499, "compare_at_price": 897, "badge_mode": "save" } }
       },
-      "block_order": [
-        "heading",
-        "button"
-      ],
-      "settings": {
-        "image_overlay_opacity": 40,
-        "image_height": "large",
-        "desktop_content_position": "bottom-center",
-        "show_text_box": false,
-        "image_behavior": "none",
-        "desktop_content_alignment": "center",
-        "color_scheme": "scheme-3",
-        "mobile_content_alignment": "center",
-        "stack_images_on_mobile": false,
-        "show_text_below": false
-      }
+      "block_order": ["promise_1", "promise_2", "promise_3", "slide_1", "slide_2", "slide_3"],
+      "settings": {}
     },
-    "featured_collection": {
-      "type": "featured-collection",
+    "pl_reviews": {
+      "type": "reviews-rail",
+      "settings": {}
+    },
+    "pl_combos": {
+      "type": "combos",
+      "blocks": {
+        "combo_1": { "type": "combo", "settings": {} },
+        "combo_2": { "type": "combo", "settings": {} },
+        "combo_3": { "type": "combo", "settings": {} }
+      },
+      "block_order": ["combo_1", "combo_2", "combo_3"],
+      "settings": {}
+    },
+    "pl_bundles": {
+      "type": "bundles",
+      "blocks": {
+        "tier_1": { "type": "tier", "settings": {} },
+        "tier_2": { "type": "tier", "settings": {} },
+        "tier_3": { "type": "tier", "settings": {} }
+      },
+      "block_order": ["tier_1", "tier_2", "tier_3"],
+      "settings": {}
+    },
+    "pl_shop": {
+      "type": "shop-grid",
       "settings": {
-        "title": "Featured products",
-        "heading_size": "h2",
-        "description": "",
-        "show_description": false,
-        "description_style": "body",
-        "collection": "all",
-        "products_to_show": 8,
-        "columns_desktop": 4,
-        "color_scheme": "scheme-1",
-        "full_width": false,
-        "show_view_all": true,
-        "view_all_style": "solid",
-        "enable_desktop_slider": false,
-        "swipe_on_mobile": false,
-        "image_ratio": "adapt",
-        "image_shape": "default",
-        "show_secondary_image": true,
-        "show_vendor": false,
-        "show_rating": false,
-        "quick_add": "none",
-        "columns_mobile": "2",
-        "padding_top": 44,
-        "padding_bottom": 36
+        "products_to_show": 8
       }
     }
   },
-  "order": [
-    "image_banner",
-    "featured_collection"
-  ]
+  "order": ["pl_hero", "pl_reviews", "pl_combos", "pl_bundles", "pl_shop"]
 }
