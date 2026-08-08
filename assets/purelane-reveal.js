@@ -13,6 +13,23 @@
  * what actually fixes that — it keeps picking up newly-inserted .pl-rv
  * elements for as long as the page is open, which is exactly the editor
  * workflow this needs to survive.
+ *
+ * `.pl-rv-eager` (Hero's own rule/lede/CTAs/badge strip only) skips the
+ * IntersectionObserver entirely and reveals right after paint instead.
+ * The prototype's own reveal threshold (rootMargin -12%, threshold 0.12
+ * — kept as-is below for every other .pl-rv element) assumes hero
+ * content comfortably fits the initial viewport, so "reveal on scroll
+ * into view" reads as a quick on-load cascade. On a real but shorter
+ * viewport (~730px, common on 768px-class laptop screens once browser
+ * chrome is subtracted) Hero's own min-height:100svh section renders
+ * taller than that, so its bottom-aligned copy sits below the fold on
+ * first paint with nothing to scroll into — confirmed live, reported
+ * as looking like a stuck/blank skeleton rather than a deliberate
+ * animation, which is a fair reading: there's no "scrolling into the
+ * page" narrative for the very first screen a visitor sees. Every
+ * other section's .pl-rv content (Reviews, Combos, Bundles, Shop) is
+ * genuinely below the fold on load, where scroll-triggered reveal is
+ * the point, and keeps the original IntersectionObserver behavior.
  */
 (function () {
   if (window.__purelaneRevealInit) return;
@@ -35,9 +52,23 @@
     );
   }
 
+  function revealEager(el) {
+    // Double rAF: guarantees the browser has painted the initial
+    // opacity:0/blur state at least once before pl-in is added, so the
+    // CSS transition actually animates instead of snapping straight to
+    // its end state.
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        el.classList.add('pl-in');
+      });
+    });
+  }
+
   function reveal(el) {
     if (el.classList.contains('pl-in')) return;
-    if (io) {
+    if (el.classList.contains('pl-rv-eager')) {
+      revealEager(el);
+    } else if (io) {
       io.observe(el);
     } else {
       el.classList.add('pl-in');

@@ -44,15 +44,15 @@
         {{ section.settings.heading_line_2 }}<br>
         <span class="pl-lime">{{ section.settings.heading_highlight }}</span>
       </h1>
-      <div class="pl-rule pl-rv pl-rv-d1">
+      <div class="pl-rule pl-rv pl-rv-eager pl-rv-d1">
         <i></i>
         {% render 'purelane-icon', icon: 'leaf' %}
         <i></i>
       </div>
       {%- if section.settings.lede != blank -%}
-        <p class="pl-lede pl-rv pl-rv-d2">{{ section.settings.lede }}</p>
+        <p class="pl-lede pl-rv pl-rv-eager pl-rv-d2">{{ section.settings.lede }}</p>
       {%- endif -%}
-      <div class="pl-hero-cta pl-rv pl-rv-d3">
+      <div class="pl-hero-cta pl-rv pl-rv-eager pl-rv-d3">
         {%- if section.settings.cta_primary_label != blank -%}
           <a class="pl-btn pl-btn-primary" href="{{ section.settings.cta_primary_link | default: '#' }}">
             {{ section.settings.cta_primary_label }}
@@ -65,7 +65,7 @@
       </div>
 
       {%- if promise_blocks.size > 0 -%}
-        <div class="pl-badgestrip pl-rv pl-rv-d4">
+        <div class="pl-badgestrip pl-rv pl-rv-eager pl-rv-d4">
           {%- for block in promise_blocks -%}
             <div class="pl-glass-2" {{ block.shopify_attributes }}>
               {% render 'purelane-icon', icon: block.settings.icon %}
