@@ -210,20 +210,31 @@ unrelated styling into these cards.
   prototype's actual numbers, which don't match a simple sum in every
   case (they're bundle discounts, not addition).
 
-## Manual handoff step (can't be done from here)
+## Manual handoff step — resolved
 
-**Shopify Partner account + development store.** Creating these requires
+**Shopify Partner account + development store.** Creating these needed
 an interactive, credentialed signup flow (email verification, ToS
-acceptance) with no CLI/API path available in this environment. The
-theme code, metaobject definitions, and seeding plan are all finished
-and committed regardless — someone needs to either (a) create the
-Partner account/dev store and hand off `shopify theme dev`/`theme push`
-access so this repo can be pushed, or (b) push this repo themselves once
-a store exists. Until that happens, none of the "verify against source
-file at 375/768/1024/1440/1920px" or "test add/remove/reorder in the
-editor" checklist items can actually be executed — see the self-review
-checklist at the end of this document for exactly which items that
-blocks.
+acceptance) with no CLI/API path available in this environment, so this
+was originally flagged as blocking several checklist items. Resolved:
+the store (`purelane-dev-kiafoimm.myshopify.com`) was created and its
+credentials handed off, the Shopify CLI was installed and authenticated,
+and the theme was pushed as an unpublished theme ("Purelane build",
+`#159677513927`). That unblocked live verification — see the checklist
+below for exactly what's now actually confirmed versus still outstanding
+(mainly: full seeded product/metaobject data, needed to see the combo,
+bundle-tier, and product cards render for real rather than in their
+empty states, and a systematic 375/768/1024/1440/1920px comparison pass).
+
+One real bug was caught by this live pass and is already fixed (commit
+`8dbfda8`): `combos.liquid` and `bundles.liquid` checked whether any
+blocks existed to decide whether to show the rail or the "add a block"
+empty-state message, but with the preset's 3 blocks present and
+unconfigured (no metaobject linked yet — the actual state of a fresh
+store before seeding), that check passed while every card inside was
+skipped, rendering an empty scrollable rail instead of the helpful
+message. Fixed to count blocks with an actual reference set, not raw
+block count. `reviews-rail.liquid` and `shop-grid.liquid` didn't have
+this bug (different, correct empty-state conditions to begin with).
 
 ## What I'd do with more time
 
@@ -231,20 +242,23 @@ blocks.
   settings instead of a Google Fonts `<link>`, and subset the weights
   actually used, for a real Core Web Vitals win instead of the
   currently-adequate-but-not-ideal preconnect+swap approach.
-- **Real device/browser testing.** Everything here was built and
-  reasoned about against the source file's own CSS (breakpoints,
-  clamp() values, flex/grid rules ported directly), but "verified at
-  375/768/1024/1440/1920px" as the assignment's checklist item means
-  actually opening the built section in a browser at each width next to
-  the source file and comparing pixel-by-pixel — impossible without a
-  live theme to preview, so this is the single biggest gap. Flagging
-  explicitly rather than claiming it's done.
+- **A systematic 375/768/1024/1440/1920px comparison pass**, side by
+  side against the source file, at every breakpoint, once real product/
+  combo/tier/review data is seeded. What's done so far: the pushed
+  theme was opened live in a real browser and spot-checked at a ~1568px
+  desktop width — typography, colour, the hero product-stage rotator's
+  autoplay/badge-math, reveal-on-scroll, and all 5 sections' empty
+  states were confirmed working correctly and matching the design, with
+  zero console errors. That's real verification, but it's one width
+  with placeholder/empty data, not the full systematic sweep the
+  checklist item asks for — the honest gap left is mobile/tablet widths
+  and full content once seeded, not "unverified in a browser" anymore.
 - **Live theme-editor testing** of add/remove/reorder/duplicate/
-  reconfigure for all 5 sections and every block type — the code is
-  written to survive this (blocks throughout, no load-once-only JS,
-  self-contained per-section backgrounds), but "written to survive it"
-  and "verified to survive it" are different claims, and only the first
-  is true yet.
+  reconfigure for all 5 sections and every block type — confirmed the
+  theme loads, renders, and handles unconfigured blocks gracefully (the
+  bug found and fixed above came directly from this pass), but the
+  actual editor UI interactions (drag-reorder, duplicate section,
+  remove-then-re-add) haven't been clicked through yet.
 - **A real quick-add / cart-drawer integration** for the shop-grid card
   instead of a plain native `/cart/add` form — functional and correct as
   built, but a full AJAX add-with-drawer-notification would match Dawn's
@@ -268,12 +282,13 @@ checked are left unchecked with the specific reason, not marked done.
       `combos.liquid`, `bundles.liquid`, `reviews-rail.liquid`, each with
       its own `{% schema %}`, addable/removable/reorderable independently.
 - [ ] **Visual match confirmed against source file at 375/768/1024/
-      1440/1920px** — not done. Every breakpoint, `clamp()` value, and
-      layout rule was ported directly from the source file's own CSS,
-      but "ported the same values" and "visually verified side-by-side
-      in a browser" are different claims, and no dev store exists yet to
-      preview this build in. Biggest open item — see "manual handoff
-      step" above.
+      1440/1920px** — partially done. The pushed theme was opened live
+      and spot-checked at a ~1568px desktop width: typography, colour,
+      the hero rotator, reveal-on-scroll, and empty states all confirmed
+      matching and functioning correctly with zero console errors. Not
+      done yet: the other four breakpoints, and re-checking combo/
+      bundle-tier/product cards with real content once seeded (right now
+      they correctly show their empty states, since no data exists yet).
 - [x] Every piece of design-visible text/media is a theme editor
       setting — headings, ledes, CTA text/links, kicker text, badge
       labels, images (via product/metaobject references), section
@@ -294,11 +309,14 @@ checked are left unchecked with the specific reason, not marked done.
       `snippets/purelane-price.liquid`, `purelane-media.liquid`,
       `purelane-card-{product,combo,bundle-tier,review}.liquid`.
 - [ ] **Sections tested for add/remove/reorder/reconfigure without
-      breaking** — not done live, for the same reason as the visual-match
-      item: no dev store to open the theme editor in yet. Written to
-      survive it (blocks throughout, no load-once-only JS, self-
-      contained per-section backgrounds instead of the prototype's
-      cross-section-coupled one) but not yet verified to.
+      breaking** — partially done. Confirmed live: the theme loads and
+      renders all 5 sections with zero console errors, and unconfigured
+      blocks (the real state of a fresh store) render a graceful
+      empty-state message rather than breaking — this pass is exactly
+      what caught and got a real fix into combos.liquid/bundles.liquid
+      (see "Manual handoff step" above). Not done yet: actually
+      clicking through the editor UI itself — drag-reorder, duplicate
+      section, remove-then-re-add.
 - [x] Lazy loading, responsive images, no layout shift implemented —
       `loading="lazy"`/`fetchpriority="high"` where appropriate,
       `srcset`/`sizes` via `image_url`, explicit `width`/`height`
@@ -312,23 +330,34 @@ checked are left unchecked with the specific reason, not marked done.
       a real contrast-checking tool — flagged above as a "with more
       time" item. Keyboard nav (tab order through cards/dots/marquee)
       was designed for but not live-tested in a browser.
-- [x] Commit history is incremental and readable — 12 commits telling
-      the build's story (Dawn base → scaffold → each section in
-      dependency order → template wiring → seeding plan → these notes),
-      not one giant commit.
+- [x] Commit history is incremental and readable — the build's story
+      (Dawn base → scaffold → each section in dependency order →
+      template wiring → seeding plan → these notes → GitHub repo → dev
+      store push → a real bug found and fixed via live testing), not one
+      giant commit.
 - [ ] **8+ products seeded including sold-out, no-image, and long-title
-      cases** — not done; no dev store exists to seed products into yet.
-      PRODUCT_SEEDING.md is the exact plan (11 products, edge cases
-      explicitly assigned) for whoever sets up the store to follow.
+      cases** — not done yet. The dev store exists and the theme is
+      pushed, but product creation is a manual admin-panel step
+      (PRODUCT_SEEDING.md is the exact 11-product checklist to follow)
+      that hasn't happened yet. Same for the combo/bundle-tier/review
+      metaobject entries listed further down that same file.
 - [x] BUILD_NOTES.md and AI_WORKFLOW_NOTES.md written and committed.
-- [ ] **Dev store URL and password ready to hand off** — not available;
-      no store exists yet (see "manual handoff step" above).
+- [x] Dev store URL and password ready to hand off — store exists
+      (`purelane-dev-kiafoimm.myshopify.com`), theme pushed as
+      unpublished theme "Purelane build" (`#159677513927`), verified
+      loading correctly in a real browser.
 
-**Summary: 8 of 13 checked.** The 5 unchecked items are all downstream of
-the same one blocker — no Shopify Partner account/dev store exists yet,
-because creating one needs an interactive signup flow this environment
-can't drive. Every item that *can* be done without a live store (the
-code itself, its data model, its documentation, its commit history) is
-done. Per the assignment's own framing: "We don't expect all five
-finished... send what you have and be straight with us about the gaps"
-— this is that, straightforwardly.
+**Summary: 9 of 13 fully checked, 2 more partially there.** What's left
+is now concrete and small, not blocked on anything external: seed the
+products/metaobjects per PRODUCT_SEEDING.md and METAFIELDS.md, then
+re-run the visual-match sweep across the other four breakpoints and with
+real content, click through the theme editor's add/remove/reorder/
+duplicate controls directly, and run a real contrast checker over the
+two accent colours. The blocker this checklist originally hit — no
+Shopify Partner account/dev store existing — is resolved: the store
+exists, the theme is pushed, and it's been opened and spot-verified live
+in a real browser, which is also how the one bug documented above got
+found and fixed. Per the assignment's own framing: "We don't expect all
+five finished... send what you have and be straight with us about the
+gaps" — this is that, straightforwardly, just further along than the
+first pass of this document was.
